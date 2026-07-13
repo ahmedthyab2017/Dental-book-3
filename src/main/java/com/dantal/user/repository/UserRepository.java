@@ -20,4 +20,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT u FROM User u JOIN u.roles r WHERE u.clinic.id = :clinicId AND r.name = :roleName ORDER BY u.createdAt ASC")
     List<User> findByClinicIdAndRoleName(@Param("clinicId") UUID clinicId, @Param("roleName") RoleName roleName);
+
+    List<User> findByClinic_IdOrderByCreatedAtAsc(UUID clinicId);
+
+    Optional<User> findByIdAndClinic_Id(UUID id, UUID clinicId);
 }
