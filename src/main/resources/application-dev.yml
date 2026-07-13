@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:dantal}
+    username: ${DB_USER:dantal}
+    password: ${DB_PASSWORD:dantal}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      pool-name: DantalHikariPool
+
+logging:
+  level:
+    com.dantal: DEBUG
+    org.hibernate.SQL: DEBUG
