@@ -24,3 +24,7 @@ dantal:
         - ${FRONTEND_URL:https://localhost:3000}
       allowed-origin-patterns:
         - https://*.vercel.app
+  seed:
+    super-admin-enabled: ${DANTAL_SEED_SUPER_ADMIN_ENABLED:false}
+    email: ${DANTAL_SEED_SUPER_ADMIN_EMAIL:}
+    password: ${DANTAL_SEED_SUPER_ADMIN_PASSWORD:}
