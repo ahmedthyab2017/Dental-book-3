@@ -83,14 +83,13 @@ public class PlatformClinicService {
         manager.getRoles().add(adminRole);
         userRepository.save(manager);
 
-        boolean licenseActivated = false;
-        ClinicLicense license = null;
+        User platformUser = userRepository.getReferenceById(createdByUserId);
         if (request.getLicenseKey() != null && !request.getLicenseKey().isBlank()) {
-            User platformUser = userRepository.getReferenceById(createdByUserId);
             licenseService.activateForClinic(clinic.getId(), platformUser, request.getLicenseKey());
-            license = clinicLicenseRepository.findById(clinic.getId()).orElse(null);
-            licenseActivated = true;
+        } else {
+            licenseService.activateDefaultForClinic(clinic.getId(), platformUser);
         }
+        ClinicLicense license = clinicLicenseRepository.findById(clinic.getId()).orElse(null);
 
         log.info("Platform user {} created clinic '{}' with manager {}", createdByUserId, clinic.getName(), manager.getEmail());
 
@@ -98,7 +97,7 @@ public class PlatformClinicService {
                 .clinic(PlatformClinicResponse.from(clinic, manager.getEmail(), license))
                 .managerEmail(manager.getEmail())
                 .managerPassword(request.getManagerPassword())
-                .licenseActivated(licenseActivated)
+                .licenseActivated(true)
                 .build();
     }
 

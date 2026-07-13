@@ -14,6 +14,7 @@ import com.dantal.auth.repository.PasswordResetTokenRepository;
 import com.dantal.clinic.entity.Clinic;
 import com.dantal.clinic.repository.ClinicRepository;
 import com.dantal.common.exception.BusinessException;
+import com.dantal.license.service.LicenseService;
 import com.dantal.mail.MailService;
 import com.dantal.common.exception.ResourceNotFoundException;
 import com.dantal.common.exception.UnauthorizedException;
@@ -55,6 +56,7 @@ public class AuthService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final RefreshTokenService refreshTokenService;
     private final MailService mailService;
+    private final LicenseService licenseService;
 
     @Transactional
     public TokenPairResponse register(RegisterRequest request) {
@@ -81,6 +83,8 @@ public class AuthService {
         user.setEmailVerified(true);
         user.getRoles().add(adminRole);
         userRepository.save(user);
+
+        licenseService.activateDefaultForClinic(clinic.getId(), user);
 
         log.info("Registered clinic '{}' with owner {}", clinic.getName(), user.getEmail());
         return refreshTokenService.issueTokenPair(user, request.getDeviceId(), request.getDeviceName());

@@ -26,6 +26,8 @@ import java.util.UUID;
 public class LicenseService {
 
     private static final String DEV_LICENSE_KEY = "DANTAL-DEV-CLINIC";
+    private static final String DEFAULT_PLATFORM_LICENSE_KEY = "platform-auto";
+    private static final String DEFAULT_PLATFORM_TIER = "clinic";
 
     private final LicenseKeyRepository licenseKeyRepository;
     private final ClinicLicenseRepository clinicLicenseRepository;
@@ -53,6 +55,20 @@ public class LicenseService {
 
         log.info("License activated for clinic {} tier={}", clinicId, tier);
         return new ActivateLicenseResponse("License activated successfully", tier);
+    }
+
+    @Transactional
+    public String activateDefaultForClinic(UUID clinicId, User activatedBy) {
+        ClinicLicense license = clinicLicenseRepository.findById(clinicId).orElseGet(ClinicLicense::new);
+        license.setClinicId(clinicId);
+        license.setLicenseKey(DEFAULT_PLATFORM_LICENSE_KEY);
+        license.setTier(DEFAULT_PLATFORM_TIER);
+        license.setActivatedAt(Instant.now());
+        license.setActivatedBy(activatedBy);
+        clinicLicenseRepository.save(license);
+
+        log.info("Default license activated for clinic {} tier={}", clinicId, DEFAULT_PLATFORM_TIER);
+        return DEFAULT_PLATFORM_TIER;
     }
 
     @Transactional
