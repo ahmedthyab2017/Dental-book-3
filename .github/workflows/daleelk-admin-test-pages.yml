@@ -28,6 +28,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
@@ -36,4 +38,4 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# Triggered intentionally for Daleelk admin login QA.
+# Temporary QA host for Daleelk admin login only.
