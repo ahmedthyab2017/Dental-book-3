@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>اختبار إدارة دليلك الطبي</title>
+<style>
+:root{--ink:#0b3544;--muted:#688087;--line:#d5e8e5;--p:#087f70;--p2:#21b798;--bg:#eef7f5}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(180deg,#f8fcfb,var(--bg));font-family:system-ui,"Segoe UI",Tahoma,sans-serif;color:var(--ink)}.shell{width:min(1080px,calc(100% - 20px));margin:18px auto 60px}.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 18px 55px #0b59600f;margin-top:12px}.login{width:min(430px,100%);margin:11vh auto}.google,.btn{border:0;border-radius:13px;min-height:48px;padding:0 15px;font:inherit;font-weight:900;cursor:pointer}.google{width:100%;background:#fff;border:1px solid #cadbd8;color:#163f48}.btn{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff}.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}.status{margin-top:12px;padding:11px;border-radius:12px;background:#f3f8f7;color:#587278;font-size:.8rem;display:none;line-height:1.7}.status.show{display:block}.status.err{background:#fff0f1;color:#933840}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.metric{border:1px solid var(--line);border-radius:15px;padding:12px}.metric small{display:block;color:var(--muted)}.metric strong{display:block;font-size:1.5rem;margin-top:4px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}input{flex:1;min-width:220px;border:1px solid var(--line);border-radius:12px;padding:11px;font:inherit}.list{display:grid;gap:8px}.row{border:1px solid var(--line);border-radius:13px;padding:11px}.row b{display:block}.row small{color:var(--muted)}.hide{display:none!important}.top{display:flex;justify-content:space-between;align-items:center;gap:10px}.daily{display:grid;gap:7px}.day{display:grid;grid-template-columns:120px 1fr;gap:10px;border-bottom:1px solid #edf2f1;padding:7px 0}.day:last-child{border-bottom:0}@media(max-width:700px){.metrics{grid-template-columns:1fr 1fr}.top{align-items:flex-start}.day{grid-template-columns:95px 1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+<section id="login" class="card login">
+<h2 style="margin-top:0">إدارة دليلك الطبي</h2>
+<p style="color:var(--muted);line-height:1.8">اختبار Google الحقيقي. حساب الإدارة وحده يفتح Super Admin.</p>
+<button id="google" class="google">G &nbsp; الدخول باستخدام Google</button>
+<div id="status" class="status"></div>
+</section>
+<div id="app" class="hide">
+<header class="top"><div><b>مركز إدارة دليلك الطبي</b><small id="who" style="display:block;color:var(--muted);margin-top:3px">Super Admin</small></div><button id="logout" class="btn ghost">خروج</button></header>
+<section class="card"><h3 style="margin-top:0">المؤشرات</h3><div id="metrics" class="metrics"></div></section>
+<section class="card"><h3 style="margin-top:0">الخلاصة اليومية</h3><div id="daily" class="daily"></div></section>
+<section class="card"><div class="toolbar"><input id="q" placeholder="ابحث باسم الطبيب أو العيادة"><button id="search" class="btn">بحث</button><button id="refresh" class="btn ghost">تحديث</button></div><div id="results" class="list"></div></section>
+</div>
+</div>
+<script type="module">
+const AUTH_URL='https://ep-sweet-pond-atrxodq9.neonauth.c-9.us-east-1.aws.neon.tech/neondb/auth';
+const ADMIN_EMAIL='ahmedthyab2017@gmail.com';
+const MODULE_URL='https://cdn.jsdelivr.net/npm/@neondatabase/auth@0.4.2-beta/+esm';
+const API='https://ystnkjakbtitrbxjbnde.supabase.co/functions/v1/daleelk-admin';
+const PAGE_URL=location.origin+location.pathname;
+const $=id=>document.getElementById(id);let auth,token='';
+const show=(m,err=false)=>{const e=$('status');e.textContent=m;e.className='status show'+(err?' err':'')};
+const unwrap=r=>r&&Object.prototype.hasOwnProperty.call(r,'data')?r.data:r;
+function findToken(v){if(!v)return'';if(typeof v==='string'&&v.split('.').length===3)return v;if(typeof v!=='object')return'';if(typeof v.token==='string'&&v.token.split('.').length===3)return v.token;for(const x of Object.values(v)){const t=findToken(x);if(t)return t}return''}
+const clean=s=>String(s||'').replace(/[<>]/g,'');
+async function api(action,query=''){const r=await fetch(API+'?action='+encodeURIComponent(action)+query,{headers:{'x-daleelk-authorization':'Bearer '+token},cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'تعذر الطلب');return d}
+function metric(a,b,c){return '<div class="metric"><small>'+clean(a)+'</small><strong>'+new Intl.NumberFormat('ar-IQ').format(Number(b)||0)+'</strong><small>'+clean(c)+'</small></div>'}
+async function directory(q=''){$('results').innerHTML='<div class="row">جارٍ التحميل…</div>';const d=await api('directory','&q='+encodeURIComponent(q)+'&limit=30&offset=0');$('results').innerHTML=(d.items||[]).map(x=>'<div class="row"><b>'+clean(x.name_ar)+'</b><small>'+clean(x.clinic_name_ar||x.address_summary||x.specialty||'')+'</small></div>').join('')||'<div class="row">لا توجد نتائج</div>'}
+async function load(){const [m,a]=await Promise.all([api('metrics'),api('analytics','&days=7')]);$('metrics').innerHTML=metric('سجلات الدليل',m.directory_published,'السجلات الحالية')+metric('حملات فعالة',m.campaigns_active,'الحملات')+metric('عروض منشورة',m.offers_published,'العروض')+metric('إشعارات مجدولة',m.notifications_scheduled,'الإشعارات');$('daily').innerHTML=(a.daily||[]).map(x=>'<div class="day"><b>'+clean(x.date)+'</b><span>التفاعلات '+Number(x.total||0)+' · البحث '+Number(x.searches||0)+' · التواصل '+Number(x.contacts||0)+' · الملفات '+Number(x.profiles||0)+' · الإعلانات '+Number(x.ads||0)+'</span></div>').join('')||'<div class="row">لا توجد بيانات يومية بعد.</div>';await directory('')}
+async function boot(){try{const mod=await import(MODULE_URL);if(typeof mod.createAuthClient!=='function')throw new Error('تعذر تحميل عميل Neon');auth=mod.createAuthClient(AUTH_URL);const sr=await auth.getSession();if(sr?.error)throw new Error(sr.error.message||'تعذر قراءة الجلسة');const s=unwrap(sr);if(!s?.user)return;if(String(s.user.email||'').toLowerCase()!==ADMIN_EMAIL){await auth.signOut();throw new Error('هذا الحساب غير مخوّل للإدارة')}const tr=await auth.token();if(tr?.error)throw new Error(tr.error.message||'تعذر إنشاء JWT');token=findToken(unwrap(tr));if(!token)throw new Error('لم يصل JWT صالح');const me=await api('me');$('who').textContent=(me.admin?.display_name||me.user?.name||'Super Admin')+' · Super Admin';$('login').classList.add('hide');$('app').classList.remove('hide');history.replaceState({},'',PAGE_URL);await load()}catch(e){show(e?.message||'تعذر فتح الإدارة',true)}}
+$('google').onclick=async()=>{try{show('جارٍ فتح Google…');if(!auth){const mod=await import(MODULE_URL);auth=mod.createAuthClient(AUTH_URL)}const r=await auth.signIn.social({provider:'google',callbackURL:PAGE_URL,errorCallbackURL:PAGE_URL,newUserCallbackURL:PAGE_URL});if(r?.error)throw new Error(r.error.message||'تعذر بدء Google');const d=unwrap(r);if(d?.url)location.assign(d.url);else throw new Error('Google لم يرجع رابط OAuth')}catch(e){show(e?.message||'تعذر بدء الدخول',true)}};
+$('logout').onclick=async()=>{try{await auth.signOut()}catch{}location.replace(PAGE_URL)};
+$('search').onclick=()=>directory($('q').value.trim());$('refresh').onclick=load;$('q').addEventListener('keydown',e=>{if(e.key==='Enter')directory($('q').value.trim())});boot();
+</script>
+</body></html>
